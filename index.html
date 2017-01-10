@@ -21,13 +21,13 @@
 
       var Comment = React.createClass({
         render: function() {
-          var md = new Remarkable();
+          // var md = new Remarkable();
           return (
             <div className="comment">
               <h2 className="commentAuthor">
                 {this.props.author}
               </h2>
-              {md.render(this.props.children.toString())}
+              {this.props.children}
             </div>
           );
         }
@@ -61,14 +61,10 @@
       });
 
       var CommentBox = React.createClass({
-        getInitialState: function() {
-          return {data: []};
-        },
-        componentDidMount: function() {
+        loadCommentsFromServer: function(){
           $.ajax({
             url: this.props.url,
             dataType: 'json',
-            cache: false,
             success: function(data) {
               this.setState({data: data});
             }.bind(this),
@@ -77,10 +73,18 @@
             }.bind(this)
           });
         },
+        getInitialState: function() {
+          return {data: []};
+        },
+        componentDidMount: function() {
+          this.loadCommentsFromServer();
+          console.log(this.props.pollInterval)
+          setInterval(this.loadCommentsFromServer, 2000);
+        },
         render: function() {
           return (
             <div className="commentBox">
-              <CommentList data={this.state.data} />
+              <CommentList data={this.state.data} pollInterval="2000" />
               <CommentForm />
             </div>
           );
@@ -88,7 +92,7 @@
       });
 
       ReactDOM.render(
-        <CommentBox url="/api/comments" />,
+        <CommentBox url="api/comments.json" />,
         document.getElementById('content')
       );
     </script>
